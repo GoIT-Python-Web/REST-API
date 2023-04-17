@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session, subqueryload
 
 from src.database.models import Note, Tag
-from src.shemas import NoteModel, NoteUpdate, NoteStatusUpdate
+from src.schemas import NoteModel, NoteUpdate, NoteStatusUpdate
 
 
 async def get_notes(skip: int, limit: int, db: Session) -> List[Note]:
@@ -24,7 +24,12 @@ async def create_note(body: NoteModel, db: Session) -> Note:
 
 
 async def remove_note(note_id: int, db: Session) -> Note | None:
-    note = db.query(Note).options(subqueryload(Note.tags)).filter(Note.id == note_id).first()
+    note = (
+        db.query(Note)
+        .options(subqueryload(Note.tags))
+        .filter(Note.id == note_id)
+        .first()
+    )
     if note:
         db.delete(note)
         db.commit()
@@ -43,7 +48,9 @@ async def update_note(note_id: int, body: NoteUpdate, db: Session) -> Note | Non
     return note
 
 
-async def update_status_note(note_id: int, body: NoteStatusUpdate, db: Session) -> Note | None:
+async def update_status_note(
+    note_id: int, body: NoteStatusUpdate, db: Session
+) -> Note | None:
     note = db.query(Note).filter(Note.id == note_id).first()
     if note:
         note.done = body.done
